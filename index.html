@@ -565,7 +565,16 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000';
+        // 检测是否在本地运行
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_URL = isLocal ? 'http://localhost:3000' : '';
+
+        // 页面加载时检查环境
+        if (!isLocal) {
+            document.addEventListener('DOMContentLoaded', () => {
+                showStatus('提示：GitHub Pages 上无法直接运行，需要本地代理服务器。请克隆项目后在本地运行。', 'warning');
+            });
+        }
 
         // Influence slider
         const influenceSlider = document.getElementById('influence');
@@ -608,6 +617,11 @@
 
         // Generate image
         document.getElementById('generate-btn').addEventListener('click', async () => {
+            if (!isLocal) {
+                showStatus('请克隆项目到本地并启动代理服务器后使用', 'error');
+                return;
+            }
+
             let prompt = document.getElementById('prompt').value.trim();
             if (!prompt) {
                 showStatus('请输入提示词', 'error');
