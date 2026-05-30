@@ -80,7 +80,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const filePath = path.join(BASE_DIR, req.url === '/' ? 'ai-image-generator.html' : req.url);
+  const filePath = path.join(BASE_DIR, req.url === '/' ? 'index.html' : req.url);
   const ext = path.extname(filePath);
   const contentType = MIME_TYPES[ext] || 'text/plain';
 
