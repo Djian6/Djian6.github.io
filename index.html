@@ -732,8 +732,6 @@
 
     <script>
         const API_URL = 'https://api.aizdzj.com/draw/text2image.php';
-        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-        const LOCAL_PROXY = '/';
 
         // Influence slider
         const influenceSlider = document.getElementById('influence');
@@ -825,61 +823,18 @@
 
         // 发送 API 请求的辅助函数
         async function makeAPIRequest(bodyString) {
-            let lastError;
-
-            // 方式 1: 通过本地代理服务器转发（推荐，运行 proxy.js 即可）
-            try {
-                const response = await fetch(LOCAL_PROXY, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    },
-                    body: bodyString
-                });
-                const data = await response.json();
-                if (response.ok && !data.error) {
-                    return data;
-                }
-                lastError = data.error || response.statusText;
-            } catch (e) {
-                lastError = e.message;
-                console.log('本地代理不可用:', e.message);
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: bodyString
+            });
+            const data = await response.json();
+            if (data.error && data.code === 403) {
+                throw new Error('API 返回错误: ' + (data.error || JSON.stringify(data)));
             }
-
-            // 方式 2: 直接调用远程 API
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    },
-                    body: bodyString
-                });
-                const data = await response.json();
-                if (!data.error || data.code !== 403) {
-                    return data;
-                }
-                lastError = data.error || response.statusText;
-            } catch (e) {
-                lastError = e.message;
-                console.log('直接调用失败:', e.message);
-            }
-
-            // 方式 3: 通过外部 CORS 代理
-            try {
-                const proxyUrl = CORS_PROXY + encodeURIComponent(API_URL + '?' + bodyString);
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
-                if (!data.error) {
-                    return data;
-                }
-                lastError = data.error || response.statusText;
-            } catch (e) {
-                lastError = e.message;
-                console.log('CORS 代理也失败了:', e.message);
-            }
-
-            throw new Error('无法连接到图像生成服务。请尝试运行本地代理：node proxy.js (原因: ' + lastError + ')');
+            return data;
         }
 
         // Poll task status
